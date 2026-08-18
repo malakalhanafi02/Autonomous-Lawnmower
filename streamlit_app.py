@@ -38,6 +38,14 @@ with col_in:
     uploaded = st.file_uploader("Yard photo", type=["jpg", "jpeg", "png"])
     example_files = sorted(EXAMPLES_DIR.glob("*.jpg")) if EXAMPLES_DIR.exists() else []
     example_choice = st.selectbox("...or pick a sample photo", ["(none)"] + [p.name for p in example_files])
+    if example_choice != "(none)":
+        st.caption(
+            "These samples are close-up shots from the segmentation training set, "
+            "so lawn/boundary results are reliable — but the detection model "
+            "(Tree/Car/Person/etc.) was trained on a separate, wider-angle dataset, "
+            "so detection boxes on these particular samples can be less accurate. "
+            "Upload your own photo for a fairer test of detection."
+        )
     mode = st.radio("Mode", ["Detection", "Segmentation", "Both"], index=2, horizontal=True)
     conf = st.slider("Confidence threshold", 0.0, 1.0, 0.4, 0.05)
 

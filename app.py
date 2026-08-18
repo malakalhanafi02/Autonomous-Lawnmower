@@ -52,6 +52,14 @@ with gr.Blocks(title="Lawn Mower Perception") as demo:
                     examples=sorted(str(p) for p in EXAMPLES_DIR.glob("*.jpg")),
                     inputs=image_in,
                 )
+                gr.Markdown(
+                    "*The sample photos above are close-up shots from the "
+                    "segmentation training set, so their lawn/boundary results are "
+                    "reliable — but the detection model (Tree/Car/Person/etc.) was "
+                    "trained on a separate, wider-angle dataset, so detection boxes "
+                    "on these particular samples can be less accurate. Upload your "
+                    "own photo for a fairer test of detection.*"
+                )
         with gr.Column():
             image_out = gr.Image(label="Annotated result")
             table_out = gr.Textbox(label="Detections", lines=6)
