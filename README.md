@@ -1,13 +1,18 @@
-# Lawn Mower Perception 🌱
+# Autonomous Lawn Mower 🌱
 
-Real-time **obstacle detection** and **lawn segmentation** for an autonomous lawn mower,
-built with **YOLOv8**. This is the AI-perception module of my Mechatronics capstone
-(MSE 4499) — extracted here as a clean, standalone, tested Python package with an
-interactive demo.
+A boundary-free autonomous lawn mower built for my Mechatronics capstone (MSE 4499) —
+**perception + SLAM + coverage planning + layered safety**, running on **ROS 1 Noetic**,
+validated in **Gazebo/RViz**, targeting a **Jetson Nano** + **Arduino Mega**. Earned an
+Honourable Mention at Western Engineering Design Day.
 
-> The full capstone was a boundary-free autonomous mower (perception + SLAM + planning +
-> safety, on ROS / Jetson Nano). **This repo focuses on the perception side** — the computer
-> vision that decides where it's safe to mow and what to avoid.
+This repo has two parts:
+- **`src/mower_perception/`** — the AI-perception module (my core contribution): YOLOv8
+  obstacle detection + lawn segmentation, packaged as a standalone, tested Python package
+  with an interactive Gradio demo.
+- **`mower_ws/`** — the full ROS 1 workspace: SLAM, sensor fusion, coverage planning,
+  motor control, and the safety-filter stack, run in Gazebo/RViz.
+
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for how it all fits together.
 
 ## What it does
 - **Detection** — locates safety-relevant obstacles (people, pets, objects) in the mower's
@@ -42,12 +47,12 @@ Try it with the sample yard photos in `examples/inputs/`, or upload your own.
 The full capstone (perception + SLAM + planning + safety) was validated end-to-end
 in Gazebo/RViz.
 
-> 🎥 [Simulation walkthrough video](#) — link coming soon
+> 🎥 [Simulation walkthrough video](https://drive.google.com/file/d/1WV4yyKTy9lSwmz7GJ16YfoIyf3QvnkAL/view?usp=share_link)
 
 ## Installation
 ```bash
-git clone https://github.com/malakalhanafi02/lawn-mower-perception.git
-cd lawn-mower-perception
+git clone https://github.com/malakalhanafi02/Autonomous-Lawnmower.git
+cd Autonomous-Lawnmower
 pip install -r requirements.txt
 ```
 
@@ -68,26 +73,17 @@ it's better to be slightly over-cautious than to trust an imperfect mask.
 
 ## Project structure
 ```
-src/mower_perception/   # detector.py, visualize.py, config.py
+src/mower_perception/   # detector.py, visualize.py, config.py (perception package)
 tests/                  # pytest unit tests
 app.py                  # Gradio demo
 models/                 # trained weights (detection_best.pt, segmentation_best.pt)
 examples/               # sample images + result figures
 training/               # training notebooks (Colab, reference)
-docs/ARCHITECTURE.md    # how this fits into the full robot (SLAM, planning, safety)
+mower_ws/               # ROS 1 (Noetic) workspace — SLAM, planning, safety, motor control
+docs/ARCHITECTURE.md    # how it all fits together
 ```
-
-## Full system
-
-This repo is the standalone perception module. It was built as part of a larger
-boundary-free autonomous mower — SLAM-based mapping, sensor-fused localization,
-coverage path planning, and a layered safety system — running on ROS 1 Noetic on a
-Jetson Nano. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full pipeline.
 
 ## Context & credits
 AI-perception component of a 5-person MSE 4499 Mechatronics capstone, which earned an
 Honourable Mention at Western Engineering Design Day. Detection and segmentation models
 trained and tuned by me.
-
-## License
-MIT

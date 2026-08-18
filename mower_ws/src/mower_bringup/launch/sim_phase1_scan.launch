@@ -1,0 +1,26 @@
+<launch>
+  <arg name="gui" default="true"/>
+  <arg name="debug_rviz" default="true"/>
+  <arg name="saved_map_yaml" default="$(find mower_bringup)/maps/latest_scan.yaml"/>
+  <arg name="show_saved_map_overlay" default="true"/>
+  <arg name="sim_camera_pitch" default="0.15"/>
+
+  <node if="$(arg show_saved_map_overlay)"
+        pkg="map_server"
+        type="map_server"
+        name="saved_map_overlay_server"
+        args="$(arg saved_map_yaml)"
+        output="screen">
+    <remap from="map" to="/map_saved"/>
+  </node>
+
+  <include file="$(find mower_bringup)/launch/sim_full_stack.launch">
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="mode" value="manual"/>
+    <arg name="autonomy_enabled" value="false"/>
+    <arg name="map_source" value="slam"/>
+    <arg name="enable_mission_manager" value="false"/>
+    <arg name="sim_camera_pitch" value="$(arg sim_camera_pitch)"/>
+    <arg name="debug_rviz" value="$(arg debug_rviz)"/>
+  </include>
+</launch>

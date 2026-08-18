@@ -1,0 +1,131 @@
+<launch>
+  <arg name="gui" default="true"/>
+  <arg name="spawn_z" default="0.26"/>
+  <arg name="slam_backend" default="gmapping"/>
+  <arg name="mode" default="manual"/>
+  <arg name="autonomy_enabled" default="false"/>
+  <arg name="map_source" default="slam"/>
+  <arg name="saved_map_yaml" default="$(find mower_bringup)/maps/latest_scan.yaml"/>
+  <arg name="use_segmentation_adapter" default="true"/>
+  <arg name="enable_detector" default="false"/>
+  <arg name="model_path" default="best.pt"/>
+  <arg name="safety_config" default="$(find mower_navigation)/config/scan_safety_filter.yaml"/>
+  <arg name="start_corner" default="lower_left"/>
+  <arg name="planner_map_topic" default="/map"/>
+  <arg name="enable_mission_manager" default="true"/>
+  <arg name="use_sim_blade_guard" default="false"/>
+  <arg name="follower_speed_scale" default="1.0"/>
+  <arg name="follower_turn_scale" default="1.0"/>
+  <arg name="follower_bootstrap_enabled" default="true"/>
+  <arg name="follower_script" default="coverage_path_follower_v2.py"/>
+  <arg name="sim_drive_scale" default="1.0"/>
+  <arg name="sim_lidar_mount_z" default="0.24"/>
+  <arg name="sim_lidar_min_range" default="0.30"/>
+  <arg name="sim_camera_pitch" default="0.15"/>
+  <arg name="enable_sim_in_place_turn_assist" default="true"/>
+  <arg name="raw_scan_topic" default="/scan"/>
+  <arg name="filtered_scan_topic" default="/scan_self_filtered"/>
+  <arg name="debug_rviz" default="false"/>
+  <arg name="debug_rviz_config" default="$(find mower_bringup)/rviz/perimeter_debug.rviz"/>
+
+  <node pkg="mower_navigation"
+        type="scan_self_filter.py"
+        name="scan_self_filter"
+        output="screen">
+    <param name="input_topic" value="/scan"/>
+    <param name="output_topic" value="$(arg filtered_scan_topic)"/>
+    <param name="base_frame" value="base_footprint"/>
+    <param name="robot_half_length_m" value="0.48"/>
+    <param name="robot_half_width_m" value="0.30"/>
+    <param name="footprint_padding_m" value="0.03"/>
+    <param name="self_filter_distance_m" value="0.0"/>
+    <param name="max_range_to_inf_margin_m" value="0.02"/>
+    <param name="tf_timeout_s" value="0.15"/>
+    <param name="fail_open" value="true"/>
+  </node>
+
+  <!-- Simulation platform and simulated sensors -->
+  <include file="$(find mower_sim)/launch/sim.launch">
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="use_pid_gains" value="true"/>
+    <arg name="spawn_z" value="$(arg spawn_z)"/>
+    <arg name="enable_ekf" value="false"/>
+    <arg name="enable_legacy_diff_topics" value="false"/>
+    <arg name="sim_drive_scale" value="$(arg sim_drive_scale)"/>
+    <arg name="sim_lidar_mount_z" value="$(arg sim_lidar_mount_z)"/>
+    <arg name="sim_lidar_min_range" value="$(arg sim_lidar_min_range)"/>
+    <arg name="sim_camera_pitch" value="$(arg sim_camera_pitch)"/>
+  </include>
+
+  <!-- Unified autonomy stack with hardware interfaces disabled -->
+  <include file="$(find mower_bringup)/launch/full_autonomy.launch">
+    <arg name="use_mega" value="false"/>
+    <arg name="use_rplidar" value="false"/>
+    <arg name="use_rtk" value="false"/>
+    <!-- Keep SLAM on raw scan; only control stack consumes self-filtered scan. -->
+    <arg name="scan_topic" value="$(arg raw_scan_topic)"/>
+    <arg name="safety_scan_topic" value="$(arg filtered_scan_topic)"/>
+    <arg name="safety_config" value="$(arg safety_config)"/>
+    <arg name="follower_scan_topic" value="$(arg filtered_scan_topic)"/>
+    <arg name="slam_backend" value="$(arg slam_backend)"/>
+    <arg name="use_segmentation_adapter" value="$(arg use_segmentation_adapter)"/>
+    <arg name="enable_detector" value="$(arg enable_detector)"/>
+    <arg name="model_path" value="$(arg model_path)"/>
+    <arg name="mode" value="$(arg mode)"/>
+    <arg name="autonomy_enabled" value="$(arg autonomy_enabled)"/>
+    <arg name="map_source" value="$(arg map_source)"/>
+    <arg name="saved_map_yaml" value="$(arg saved_map_yaml)"/>
+    <arg name="start_corner" value="$(arg start_corner)"/>
+    <arg name="planner_map_topic" value="$(arg planner_map_topic)"/>
+    <arg name="enable_mission_manager" value="$(arg enable_mission_manager)"/>
+    <arg name="follower_odom_topic" value="/odometry/filtered"/>
+    <arg name="follower_bootstrap_enabled" value="$(arg follower_bootstrap_enabled)"/>
+    <arg name="follower_script" value="$(arg follower_script)"/>
+    <arg name="surface_guard_odom_topic" value="/odometry/filtered"/>
+    <arg name="follower_speed_scale" value="$(arg follower_speed_scale)"/>
+    <arg name="follower_turn_scale" value="$(arg follower_turn_scale)"/>
+    <arg name="use_legacy_cmd_vel_relay" value="false"/>
+    <!-- Sim publishes /scan, so keep safety closed-loop in sim. -->
+    <arg name="safety_fail_open" value="false"/>
+    <arg name="enable_surface_blade_guard" value="$(eval str(arg('use_sim_blade_guard')).lower() == 'false')"/>
+  </include>
+
+  <node if="$(arg use_sim_blade_guard)"
+        pkg="mower_sim"
+        type="blade_surface_guard.py"
+        name="blade_surface_guard"
+        output="screen">
+    <rosparam file="$(find mower_sim)/config/blade_surface_guard.yaml" command="load"/>
+  </node>
+
+  <node if="$(arg enable_sim_in_place_turn_assist)"
+        pkg="mower_sim"
+        type="in_place_turn_assist.py"
+        name="in_place_turn_assist"
+        output="screen">
+    <param name="model_name" value="mower"/>
+    <param name="model_name_hints" value="mower,robot,base"/>
+    <param name="cmd_topic" value="/cmd_vel_nav"/>
+    <param name="mode_topic" value="/mower/mode"/>
+    <param name="enabled_topic" value="/mower/autonomy_enabled"/>
+    <param name="min_turn_rate_rps" value="0.2"/>
+    <param name="max_linear_for_pivot_mps" value="0.15"/>
+    <param name="angular_scale" value="1.0"/>
+    <param name="max_yaw_step_rad" value="0.03"/>
+    <param name="yaw_tolerance_rad" value="0.012"/>
+    <param name="cmd_timeout_s" value="0.35"/>
+    <param name="loop_hz" value="40.0"/>
+    <param name="require_auto_mode" value="true"/>
+    <param name="require_autonomy_enabled" value="true"/>
+    <param name="zero_twist_on_set" value="true"/>
+  </node>
+
+  <node if="$(arg debug_rviz)"
+        pkg="rviz"
+        type="rviz"
+        name="rviz_perimeter_debug"
+        args="-d $(arg debug_rviz_config)"
+        output="screen">
+    <env name="DISABLE_ROS1_EOL_WARNINGS" value="1"/>
+  </node>
+</launch>

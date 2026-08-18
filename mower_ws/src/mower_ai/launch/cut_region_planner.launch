@@ -1,0 +1,14 @@
+<launch>
+  <arg name="config_file" default="$(find mower_ai)/config/cut_region_planner.yaml"/>
+  <arg name="start_corner" default="lower_left"/>
+  <arg name="map_topic" default="/map"/>
+
+  <node pkg="mower_ai"
+        type="cut_region_planner.py"
+        name="cut_region_planner"
+        output="screen">
+    <rosparam file="$(arg config_file)" command="load"/>
+    <param name="map_topic" value="$(arg map_topic)"/>
+    <param name="start_corner" value="$(arg start_corner)"/>
+  </node>
+</launch>

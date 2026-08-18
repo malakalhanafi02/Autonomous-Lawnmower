@@ -1,0 +1,28 @@
+enabled_topic: /mower/autonomy_enabled
+map_topic: /map
+plan_service: /cut_region_planner/build_plan
+map_timeout_s: 5.0
+allow_stale_map_for_bootstrap: true
+stale_map_bootstrap_max_age_s: 600.0
+replan_on_enable: true
+replan_interval_s: 20.0
+plan_retry_interval_s: 2.0
+
+# Delay planning until map has enough explored content.
+map_min_known_cells: 250
+map_min_known_ratio: 0.0
+replan_on_map_growth: true
+map_growth_known_cells: 500
+map_growth_min_plan_age_s: 20.0
+
+# Replan quickly when no-cut detections change.
+detection_topic: /camera/detections_json
+replan_on_detection_change: true
+detection_replan_cooldown_s: 2.0
+
+# Defer planning until the perimeter bootstrap phase reports complete.
+wait_for_perimeter_complete: true
+perimeter_complete_topic: /mower/perimeter_complete
+reset_perimeter_on_enable: true
+
+loop_hz: 2.0

@@ -1,0 +1,27 @@
+# ── Serial connection ─────────────────────────────────────
+# Raspberry Pi GPIO UART:   /dev/ttyS0  or  /dev/serial0
+# Jetson Nano GPIO UART:    /dev/ttyTHS1
+# USB serial adapter:       /dev/ttyUSB0  or  /dev/ttyACM0
+port: /dev/ttyS0
+baud: 115200
+
+# TF frame for published messages
+frame_id: gps_link
+
+# ── NTRIP corrections (optional – enables RTK) ───────────
+# Set enabled: true and fill in your caster details for
+# centimetre-level RTK positioning.
+#
+# Free NTRIP casters (Canada/US examples):
+#   - CANNET:   rtk.nrcan.gc.ca:2101
+#   - UNAVCO:   rtgpsout.unavco.org:2101
+#   - RTK2GO:   rtk2go.com:2101
+ntrip:
+  enabled: false
+  host: ""
+  port: 2101
+  mountpoint: ""
+  user: ""
+  password: ""
+  send_gga: true           # send position to caster (needed for VRS)
+  gga_interval: 10.0       # seconds between GGA uploads

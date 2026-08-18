@@ -1,0 +1,6 @@
+# Bringup defaults can be overridden with launch args.
+# This file is intentionally minimal and versioned as a single reference point.
+serial_port: /dev/ttyACM0
+serial_baud: 115200
+slam_backend: gmapping
+scan_topic: /scan

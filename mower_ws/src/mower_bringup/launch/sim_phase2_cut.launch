@@ -1,0 +1,35 @@
+<launch>
+  <arg name="gui" default="true"/>
+  <arg name="debug_rviz" default="true"/>
+  <arg name="debug_rviz_config" default="$(find mower_bringup)/rviz/perimeter_debug_phase2.rviz"/>
+  <arg name="saved_map_yaml" default="$(find mower_bringup)/maps/latest_scan.yaml"/>
+  <arg name="sim_camera_pitch" default="0.15"/>
+  <!-- Keep saved map as base by default in phase-2 to avoid "blank map" resets. -->
+  <arg name="enable_live_map_updates" default="false"/>
+  <!-- Force follower to skip bootstrap and execute saved-map coverage directly. -->
+  <rosparam param="/coverage_path_follower/perimeter_bootstrap_enabled">false</rosparam>
+  <rosparam param="/coverage_path_follower/bootstrap_reset_on_enable">false</rosparam>
+  <!-- Build plan from frozen saved map while allowing live /map updates during cutting. -->
+  <node pkg="map_server"
+        type="map_server"
+        name="saved_map_server"
+        args="$(arg saved_map_yaml)"
+        output="screen">
+    <remap from="map" to="/map_saved"/>
+  </node>
+
+  <include file="$(find mower_bringup)/launch/sim_full_stack.launch">
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="mode" value="manual"/>
+    <arg name="autonomy_enabled" value="false"/>
+    <arg name="map_source" value="$(eval 'slam' if str(arg('enable_live_map_updates')).lower() in ['true','1','yes','on'] else 'saved')"/>
+    <arg name="saved_map_yaml" value="$(arg saved_map_yaml)"/>
+    <arg name="safety_config" value="$(find mower_navigation)/config/scan_safety_filter_phase2.yaml"/>
+    <arg name="planner_map_topic" value="/map_saved"/>
+    <arg name="enable_mission_manager" value="false"/>
+    <arg name="follower_bootstrap_enabled" value="false"/>
+    <arg name="sim_camera_pitch" value="$(arg sim_camera_pitch)"/>
+    <arg name="debug_rviz" value="$(arg debug_rviz)"/>
+    <arg name="debug_rviz_config" value="$(arg debug_rviz_config)"/>
+  </include>
+</launch>

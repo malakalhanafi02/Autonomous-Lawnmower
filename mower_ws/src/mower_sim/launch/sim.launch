@@ -1,0 +1,79 @@
+<launch>
+  <arg name="use_pid_gains" default="true"/>
+  <arg name="spawn_z" default="0.26"/>
+  <arg name="gui" default="false"/>
+  <arg name="enable_ekf" default="false"/>
+  <arg name="enable_legacy_diff_topics" default="false"/>
+  <arg name="publish_front_wheel_tf_fallback" default="true"/>
+  <arg name="sim_drive_scale" default="1.0"/>
+  <!-- Use a high wheel acceleration in sim so cmd changes apply nearly instantly. -->
+  <arg name="sim_wheel_accel" default="$(eval 20.0 * float(arg('sim_drive_scale')))"/>
+  <arg name="sim_wheel_torque" default="$(eval 260.0 * float(arg('sim_drive_scale')))"/>
+  <!-- Raise lidar in sim and ignore near returns to suppress mower self-hits. -->
+  <arg name="sim_lidar_mount_z" default="0.24"/>
+  <arg name="sim_lidar_min_range" default="0.30"/>
+  <!-- Camera pitch forwarded to URDF (positive tilts down for this model setup). -->
+  <arg name="sim_camera_pitch" default="0.15"/>
+
+  <param name="robot_description"
+         command="$(find xacro)/xacro $(find mower_description)/urdf/mower.urdf.xacro diff_wheel_accel:=$(arg sim_wheel_accel) diff_wheel_torque:=$(arg sim_wheel_torque) lidar_mount_z:=$(arg sim_lidar_mount_z) lidar_min_range:=$(arg sim_lidar_min_range) camera_pitch:=$(arg sim_camera_pitch)" />
+
+  <rosparam if="$(arg use_pid_gains)" file="$(find mower_sim)/config/pid_gains.yaml" command="load"/>
+
+  <node name="robot_state_publisher"
+        pkg="robot_state_publisher"
+        type="robot_state_publisher" />
+  <!-- RViz fallback TF for passive front idlers when joint states are not emitted. -->
+  <node if="$(arg publish_front_wheel_tf_fallback)"
+        pkg="tf"
+        type="static_transform_publisher"
+        name="front_left_wheel_tf_fallback"
+        args="0.25 0.25 -0.05 0 0 0 base_link front_left_wheel 100"/>
+  <node if="$(arg publish_front_wheel_tf_fallback)"
+        pkg="tf"
+        type="static_transform_publisher"
+        name="front_right_wheel_tf_fallback"
+        args="0.25 -0.25 -0.05 0 0 0 base_link front_right_wheel 100"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find mower_sim)/worlds/mower.world"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="$(arg gui)"/>
+  </include>
+
+  <node name="spawn_model"
+        pkg="gazebo_ros"
+        type="spawn_model"
+        args="-param robot_description -urdf -model mower -x 0 -y 0 -z $(arg spawn_z)" />
+  <rosparam file="$(find mower_sim)/config/controllers.yaml" command="load"/>
+
+  <node name="controller_spawner"
+        pkg="controller_manager"
+        type="spawner"
+        respawn="false"
+        output="screen"
+        args="joint_state_controller cutter_controller"/>
+        
+  <!-- Legacy compatibility: map old diff-drive cmd topic to new canonical /cmd_vel -->
+  <node if="$(arg enable_legacy_diff_topics)"
+        pkg="topic_tools"
+        type="relay"
+        name="cmd_vel_legacy_to_cmd_vel_relay"
+        args="/diff_drive_controller/cmd_vel /cmd_vel"
+        output="screen"/>
+  <!-- Legacy compatibility: expose odom on old diff-drive odom topic -->
+  <node if="$(arg enable_legacy_diff_topics)"
+        pkg="topic_tools"
+        type="relay"
+        name="odom_to_legacy_diff_odom_relay"
+        args="/odom /diff_drive_controller/odom"
+        output="screen"/>
+  <!-- Normalize Gazebo camera namespace to standard camera topics -->
+  <node pkg="topic_tools" type="relay" name="camera_image_relay"
+        args="/mower_camera/camera/image_raw /camera/image_raw" output="screen"/>
+  <node pkg="topic_tools" type="relay" name="camera_info_relay"
+        args="/mower_camera/camera/camera_info /camera/camera_info" output="screen"/>
+  <include file="$(find mower_sensors)/launch/sim_sensors.launch" />
+  <include if="$(arg enable_ekf)" file="$(find mower_navigation)/launch/ekf.launch" />
+</launch>

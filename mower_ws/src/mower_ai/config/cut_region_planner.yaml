@@ -1,0 +1,16 @@
+map_topic: /map
+detection_topic: /camera/detections_json
+output_topic: /mower_ai/cut_plan
+frame_id: map
+free_threshold: 20
+stripe_spacing_m: 0.45
+path_clearance_m: 0.35
+turnaround_margin_m: 0.375
+row_turn_radius_m: 0.75
+row_transition_step_m: 0.03
+transition_astar_max_expansions: 120000
+# When false, no-cut zones are still published for cutter guard, but remain drivable.
+avoid_no_cut_zones: false
+sample_step_cells: 2
+start_corner: lower_left
+min_waypoints: 120

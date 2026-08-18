@@ -1,0 +1,47 @@
+<launch>
+  <arg name="use_mega" default="true"/>
+  <arg name="serial_port" default="/dev/ttyACM0"/>
+  <arg name="serial_baud" default="115200"/>
+  <arg name="use_rplidar" default="true"/>
+  <arg name="lidar_serial_port" default="/dev/ttyUSB0"/>
+  <arg name="lidar_serial_baudrate" default="460800"/>
+  <arg name="lidar_frame_id" default="lidar_link"/>
+  <arg name="scan_topic" default="/scan"/>
+  <arg name="model_path" default="best.pt"/>
+  <arg name="enable_detector" default="true"/>
+  <arg name="slam_backend" default="gmapping"/>
+  <arg name="map_source" default="slam"/>
+  <arg name="saved_map_yaml" default="$(find mower_bringup)/maps/latest_scan.yaml"/>
+  <arg name="use_rtk" default="true"/>
+  <arg name="gps_port" default="/dev/ttyS0"/>
+  <arg name="enable_rtk_gps" default="$(arg use_rtk)"/>
+  <arg name="use_segmentation_adapter" default="true"/>
+  <arg name="mode" default="manual"/>
+  <arg name="autonomy_enabled" default="false"/>
+  <arg name="start_corner" default="lower_left"/>
+
+  <include if="$(arg enable_rtk_gps)" file="$(find mower_sensors)/launch/rtk_gps.launch">
+    <arg name="port" value="$(arg gps_port)"/>
+  </include>
+
+  <include file="$(find mower_bringup)/launch/full_autonomy.launch">
+    <arg name="use_mega" value="$(arg use_mega)"/>
+    <arg name="serial_port" value="$(arg serial_port)"/>
+    <arg name="serial_baud" value="$(arg serial_baud)"/>
+    <arg name="use_rplidar" value="$(arg use_rplidar)"/>
+    <arg name="lidar_serial_port" value="$(arg lidar_serial_port)"/>
+    <arg name="lidar_serial_baudrate" value="$(arg lidar_serial_baudrate)"/>
+    <arg name="lidar_frame_id" value="$(arg lidar_frame_id)"/>
+    <arg name="scan_topic" value="$(arg scan_topic)"/>
+    <arg name="use_rtk" value="$(arg use_rtk)"/>
+    <arg name="use_segmentation_adapter" value="$(arg use_segmentation_adapter)"/>
+    <arg name="enable_detector" value="$(arg enable_detector)"/>
+    <arg name="model_path" value="$(arg model_path)"/>
+    <arg name="slam_backend" value="$(arg slam_backend)"/>
+    <arg name="map_source" value="$(arg map_source)"/>
+    <arg name="saved_map_yaml" value="$(arg saved_map_yaml)"/>
+    <arg name="mode" value="$(arg mode)"/>
+    <arg name="autonomy_enabled" value="$(arg autonomy_enabled)"/>
+    <arg name="start_corner" value="$(arg start_corner)"/>
+  </include>
+</launch>

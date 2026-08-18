@@ -1,0 +1,3 @@
+input_topic: /camera/segmentation_zones_json
+output_topic: /camera/detections_json
+min_points_per_polygon: 3

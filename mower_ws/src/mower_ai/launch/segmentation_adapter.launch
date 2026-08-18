@@ -1,0 +1,9 @@
+<launch>
+  <arg name="config_file" default="$(find mower_ai)/config/segmentation_adapter.yaml"/>
+  <node pkg="mower_ai"
+        type="segmentation_adapter.py"
+        name="segmentation_adapter"
+        output="screen">
+    <rosparam file="$(arg config_file)" command="load"/>
+  </node>
+</launch>

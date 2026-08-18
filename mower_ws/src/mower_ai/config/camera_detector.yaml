@@ -1,0 +1,38 @@
+# ── Model ──────────────────────────────────────────────────
+# Path to YOLOv8 weights (.pt for PyTorch, .onnx for ONNX Runtime).
+# On Jetson: convert ONNX → TensorRT first for best throughput.
+model_path: best.pt
+confidence_threshold: 0.40
+inference_rate: 5.0            # Hz – max frames processed per second
+
+# ── Topics (Gazebo simulation defaults) ───────────────────
+image_topic:         /mower_camera/camera/image_raw
+camera_info_topic:   /mower_camera/camera/camera_info
+detection_topic:     /camera/detections_json
+detection_image_topic: /camera/detection_image
+alert_topic:         /camera/obstacle_alert
+
+# ── Frames ────────────────────────────────────────────────
+map_frame:    map
+camera_frame: camera_link
+
+# ── Ground-plane projection ───────────────────────────────
+ground_z: 0.0                  # z of ground in map frame (metres)
+max_projection_distance: 15.0  # ignore projections farther than this
+
+# ── Safety ────────────────────────────────────────────────
+safety_distance: 2.0           # metres – alert when safety class within range
+safety_classes:
+  - Person
+  - Dog
+
+# ── Obstacle footprint radii (metres) ────────────────────
+# Used to build square no-cut-zone polygons around each detection.
+obstacle_radii:
+  Person: 0.5
+  Dog: 0.4
+  Tree: 0.6
+  Bicycle: 0.8
+  Electric pole: 0.3
+  Uncovered manhole: 0.5
+  default: 0.5

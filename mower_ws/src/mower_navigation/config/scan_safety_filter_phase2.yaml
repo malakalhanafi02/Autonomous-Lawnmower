@@ -1,0 +1,38 @@
+cmd_in_topic: /cmd_vel_raw
+cmd_out_topic: /cmd_vel
+scan_topic: /scan
+base_frame: base_footprint
+tf_timeout_s: 0.2
+
+# Phase-2 tuning: avoid oscillating away from side walls while still
+# hard-stopping for true front collisions.
+stop_distance_m: 0.70
+slow_distance_m: 1.45
+forward_fov_deg: 38.0
+avoid_turn_rate: 0.8
+blocked_reverse_speed_mps: 0.22
+clear_distance_m: 0.92
+
+robot_half_length_m: 0.48
+robot_half_width_m: 0.30
+footprint_padding_m: 0.03
+self_filter_distance_m: 0.20
+min_points_to_block: 6
+turn_bias_epsilon_m: 0.05
+idle_linear_threshold: 0.01
+idle_angular_threshold: 0.01
+allow_reverse_when_blocked: true
+
+scan_timeout_s: 0.6
+fail_open: false
+loop_hz: 30.0
+
+# Ultrasonic hard override (still highest priority).
+use_ultrasonic_front: true
+ultrasonic_topic: /jetson_mega_bridge/ultrasonic_distance_cm
+ultrasonic_scale: 0.01
+ultrasonic_timeout_s: 0.6
+ultrasonic_stop_distance_m: 0.72
+ultrasonic_clear_distance_m: 0.95
+ultrasonic_reverse_speed_mps: 0.22
+ultrasonic_turn_rate_rps: 0.80

@@ -1,0 +1,15 @@
+port: /dev/ttyACM0
+baud: 115200
+write_timeout: 0.05
+loop_hz: 30.0
+
+# Safety requirement from project spec
+command_timeout: 0.5
+
+# Vehicle limits
+max_speed_mps: 1.0
+max_steer_rad: 0.6
+wheelbase_m: 0.50
+min_speed_for_steer: 0.08
+in_place_turn_speed_mps: 0.20
+min_publish_delta: 0.01

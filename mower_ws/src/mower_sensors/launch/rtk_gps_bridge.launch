@@ -1,0 +1,9 @@
+<launch>
+  <arg name="config_file" default="$(find mower_sensors)/config/rtk_gps_bridge.yaml"/>
+  <node pkg="mower_sensors"
+        type="rtk_gps_bridge.py"
+        name="rtk_gps_bridge"
+        output="screen">
+    <rosparam file="$(arg config_file)" command="load"/>
+  </node>
+</launch>

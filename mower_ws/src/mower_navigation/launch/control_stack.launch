@@ -1,0 +1,63 @@
+<launch>
+  <arg name="arbiter_config" default="$(find mower_navigation)/config/cmd_vel_arbiter.yaml"/>
+  <arg name="safety_config" default="$(find mower_navigation)/config/scan_safety_filter.yaml"/>
+  <arg name="follower_config" default="$(find mower_navigation)/config/coverage_follower.yaml"/>
+  <arg name="follower_script" default="coverage_path_follower_v2.py"/>
+  <arg name="mission_manager_config" default="$(find mower_navigation)/config/coverage_mission_manager.yaml"/>
+  <arg name="surface_guard_config" default="$(find mower_navigation)/config/surface_blade_guard.yaml"/>
+  <arg name="follower_speed_scale" default="1.0"/>
+  <arg name="follower_turn_scale" default="1.0"/>
+  <arg name="follower_bootstrap_enabled" default="true"/>
+  <arg name="follower_odom_topic" default="/odometry/filtered"/>
+  <arg name="follower_scan_topic" default="/scan"/>
+  <arg name="safety_scan_topic" default="/scan"/>
+  <arg name="surface_guard_odom_topic" default="/odometry/filtered"/>
+  <arg name="enable_mission_manager" default="true"/>
+  <arg name="enable_surface_blade_guard" default="true"/>
+  <arg name="safety_fail_open" default="false"/>
+
+  <node pkg="mower_navigation"
+        type="cmd_vel_arbiter.py"
+        name="cmd_vel_arbiter"
+        output="screen">
+    <rosparam file="$(arg arbiter_config)" command="load"/>
+  </node>
+
+  <node pkg="mower_navigation"
+        type="scan_safety_filter.py"
+        name="scan_safety_filter"
+        output="screen">
+    <rosparam file="$(arg safety_config)" command="load"/>
+    <param name="scan_topic" value="$(arg safety_scan_topic)"/>
+    <param name="fail_open" value="$(arg safety_fail_open)"/>
+  </node>
+
+  <node pkg="mower_navigation"
+        type="$(arg follower_script)"
+        name="coverage_path_follower"
+        output="screen">
+    <rosparam file="$(arg follower_config)" command="load"/>
+    <param name="odom_topic" value="$(arg follower_odom_topic)"/>
+    <param name="perimeter_scan_topic" value="$(arg follower_scan_topic)"/>
+    <param name="debug_speed_scale" value="$(arg follower_speed_scale)"/>
+    <param name="debug_turn_scale" value="$(arg follower_turn_scale)"/>
+    <param name="perimeter_bootstrap_enabled" value="$(arg follower_bootstrap_enabled)"/>
+  </node>
+
+  <node if="$(arg enable_mission_manager)"
+        pkg="mower_navigation"
+        type="coverage_mission_manager.py"
+        name="coverage_mission_manager"
+        output="screen">
+    <rosparam file="$(arg mission_manager_config)" command="load"/>
+  </node>
+
+  <node if="$(arg enable_surface_blade_guard)"
+        pkg="mower_navigation"
+        type="surface_blade_guard.py"
+        name="surface_blade_guard"
+        output="screen">
+    <rosparam file="$(arg surface_guard_config)" command="load"/>
+    <param name="odom_topic" value="$(arg surface_guard_odom_topic)"/>
+  </node>
+</launch>

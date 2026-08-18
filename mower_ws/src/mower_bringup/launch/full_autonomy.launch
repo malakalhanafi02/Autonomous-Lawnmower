@@ -1,0 +1,113 @@
+<launch>
+  <arg name="use_mega" default="true"/>
+  <arg name="serial_port" default="/dev/ttyACM0"/>
+  <arg name="serial_baud" default="115200"/>
+
+  <arg name="use_rplidar" default="true"/>
+  <arg name="lidar_serial_port" default="/dev/ttyUSB0"/>
+  <arg name="lidar_serial_baudrate" default="460800"/>
+  <arg name="lidar_frame_id" default="lidar_link"/>
+  <arg name="scan_topic" default="/scan"/>
+  <arg name="safety_scan_topic" default="$(arg scan_topic)"/>
+  <arg name="follower_scan_topic" default="$(arg scan_topic)"/>
+  <arg name="safety_config" default="$(find mower_navigation)/config/scan_safety_filter.yaml"/>
+  <arg name="follower_script" default="coverage_path_follower_v2.py"/>
+
+  <arg name="use_rtk" default="true"/>
+  <arg name="use_segmentation_adapter" default="true"/>
+  <arg name="enable_detector" default="false"/>
+  <arg name="model_path" default="best.pt"/>
+  <arg name="slam_backend" default="gmapping"/>
+
+  <arg name="mode" default="manual"/>
+  <arg name="autonomy_enabled" default="false"/>
+  <arg name="use_legacy_cmd_vel_relay" default="false"/>
+  <arg name="legacy_cmd_vel_input_topic" default="/cmd_vel_legacy"/>
+  <arg name="safety_fail_open" default="$(eval str(arg('use_rplidar')).lower() == 'false')"/>
+  <arg name="start_corner" default="lower_left"/>
+  <arg name="planner_map_topic" default="/map"/>
+  <arg name="map_source" default="slam"/>
+  <arg name="saved_map_yaml" default="$(find mower_bringup)/maps/latest_scan.yaml"/>
+  <arg name="enable_mission_manager" default="true"/>
+  <arg name="enable_surface_blade_guard" default="true"/>
+  <arg name="follower_odom_topic" default="/odometry/filtered"/>
+  <arg name="surface_guard_odom_topic" default="/odometry/filtered"/>
+  <arg name="follower_speed_scale" default="1.0"/>
+  <arg name="follower_turn_scale" default="1.0"/>
+  <arg name="follower_bootstrap_enabled" default="true"/>
+
+  <include if="$(arg use_mega)" file="$(find mower_hardware_interface)/launch/jetson_mega_control.launch">
+    <arg name="port" value="$(arg serial_port)"/>
+    <arg name="baud" value="$(arg serial_baud)"/>
+  </include>
+
+  <include if="$(arg use_rplidar)" file="$(find mower_sensors)/launch/rplidar_c1m1_r2.launch">
+    <arg name="serial_port" value="$(arg lidar_serial_port)"/>
+    <arg name="serial_baudrate" value="$(arg lidar_serial_baudrate)"/>
+    <arg name="frame_id" value="$(arg lidar_frame_id)"/>
+    <arg name="scan_topic" value="$(arg scan_topic)"/>
+  </include>
+
+  <include if="$(arg use_rtk)" file="$(find mower_sensors)/launch/rtk_gps_bridge.launch"/>
+
+  <group if="$(eval arg('map_source') == 'slam')">
+    <include file="$(find mower_navigation)/launch/slam.launch">
+      <arg name="slam_backend" value="$(arg slam_backend)"/>
+      <arg name="scan_topic" value="$(arg scan_topic)"/>
+    </include>
+  </group>
+
+  <group if="$(eval arg('map_source') == 'saved')">
+    <node pkg="map_server"
+          type="map_server"
+          name="map_server"
+          args="$(arg saved_map_yaml)"
+          output="screen"/>
+    <node pkg="tf2_ros"
+          type="static_transform_publisher"
+          name="map_to_odom_static_tf"
+          args="0 0 0 0 0 0 map odom"/>
+  </group>
+
+  <include if="$(arg use_rtk)" file="$(find mower_navigation)/launch/ekf_rtk.launch"/>
+  <include unless="$(arg use_rtk)" file="$(find mower_navigation)/launch/ekf.launch"/>
+
+  <include file="$(find mower_ai)/launch/cut_region_planner.launch">
+    <arg name="start_corner" value="$(arg start_corner)"/>
+    <arg name="map_topic" value="$(arg planner_map_topic)"/>
+  </include>
+  <include if="$(arg use_segmentation_adapter)" file="$(find mower_ai)/launch/segmentation_adapter.launch"/>
+  <include if="$(arg enable_detector)" file="$(find mower_ai)/launch/camera_detector.launch">
+    <arg name="model_path" value="$(arg model_path)"/>
+  </include>
+  <include file="$(find mower_navigation)/launch/control_stack.launch">
+    <!-- In dev mode without LiDAR, allow cmd_vel pass-through for software testing. -->
+    <arg name="safety_fail_open" value="$(arg safety_fail_open)"/>
+    <arg name="safety_config" value="$(arg safety_config)"/>
+    <arg name="safety_scan_topic" value="$(arg safety_scan_topic)"/>
+    <arg name="follower_scan_topic" value="$(arg follower_scan_topic)"/>
+    <arg name="follower_script" value="$(arg follower_script)"/>
+    <arg name="follower_odom_topic" value="$(arg follower_odom_topic)"/>
+    <arg name="follower_bootstrap_enabled" value="$(arg follower_bootstrap_enabled)"/>
+    <arg name="surface_guard_odom_topic" value="$(arg surface_guard_odom_topic)"/>
+    <arg name="enable_mission_manager" value="$(arg enable_mission_manager)"/>
+    <arg name="enable_surface_blade_guard" value="$(arg enable_surface_blade_guard)"/>
+    <arg name="follower_speed_scale" value="$(arg follower_speed_scale)"/>
+    <arg name="follower_turn_scale" value="$(arg follower_turn_scale)"/>
+  </include>
+
+  <node pkg="mower_navigation"
+        type="autonomy_state_publisher.py"
+        name="autonomy_state_publisher"
+        output="screen">
+    <param name="mode" value="$(arg mode)"/>
+    <param name="autonomy_enabled" value="$(arg autonomy_enabled)"/>
+  </node>
+
+  <node if="$(arg use_legacy_cmd_vel_relay)"
+        pkg="topic_tools"
+        type="relay"
+        name="cmd_vel_legacy_to_manual_relay"
+        args="$(arg legacy_cmd_vel_input_topic) /cmd_vel_manual"
+        output="screen"/>
+</launch>

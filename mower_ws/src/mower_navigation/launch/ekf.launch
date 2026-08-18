@@ -1,0 +1,6 @@
+<launch>
+  <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization" output="screen" clear_params="true">
+    <rosparam file="$(find mower_navigation)/config/ekf.yaml" command="load"/>
+    <param name="odometry/filtered" value="/odometry/filtered"/>
+  </node>
+</launch>

@@ -26,33 +26,46 @@ shutdown, obstacle awareness.
 Independent ROS nodes communicate over topics/services so a failure in one
 subsystem can be isolated and fixed without touching the rest.
 
-## Where this repo fits
+## Where each piece lives in this repo
 
-- **Perception (this repo):** two YOLOv8 models — object **detection**
-  (people/pets/obstacles) and lawn **segmentation** (cuttable grass vs.
-  boundary/non-grass). Trained on a custom, hand-labeled dataset. Detections
-  are published as "no-cut" polygons that the planner consumes, and used
-  **conservatively** — treated as cautious hints rather than exact boundaries,
-  because in a safety-critical system it's better to be slightly over-cautious
-  than to trust an imperfect mask.
-- **Localization & mapping:** LiDAR SLAM (gmapping / hector_mapping) produces
-  an occupancy grid; an Extended Kalman Filter fuses wheel odometry + IMU +
-  GPS into one pose estimate — this fusion is what gets localization under the
-  10 cm target, since no single sensor is accurate enough alone.
-- **Coverage planning:** a boustrophedon ("back-and-forth") sweep over the
-  occupancy map, skipping occupied cells and AI no-cut zones via a
-  point-in-polygon test, producing a waypoint path.
-- **Motion control:** a Jetson↔Arduino serial bridge converts `/cmd_vel` into
-  motor commands, clamped to a max speed, with a **500 ms watchdog** — if
-  commands stop arriving, the mower halts instead of running away.
-- **Safety (defense in depth):** the command watchdog, a LiDAR + ultrasonic
-  safety filter (with hysteresis to avoid chattering between blocked/unblocked),
-  and cutter gating that only enables the blade when the mission state is
-  valid, the mower is outside no-cut zones, *and* the camera confirms
-  grass-like pixels underneath.
-- **Simulation & validation:** each subsystem was validated independently in
-  Gazebo/RViz before being combined into a full-stack autonomy trial, so
-  failures could be isolated rather than debugged all at once.
+- **Perception — `src/mower_perception/`:** two YOLOv8 models — object
+  **detection** (people/pets/obstacles) and lawn **segmentation** (cuttable
+  grass vs. boundary/non-grass). Trained on a custom, hand-labeled dataset.
+  In the ROS graph, `mower_ws/src/mower_ai/scripts/camera_detector.py` and
+  `segmentation_adapter.py` run these models on the live camera feed and
+  publish detections as "no-cut" polygons for the planner — used
+  **conservatively** (cautious hints, not exact boundaries), because in a
+  safety-critical system it's better to be slightly over-cautious than to
+  trust an imperfect mask.
+- **Localization & mapping — `mower_navigation/`:** LiDAR SLAM (`slam.launch`,
+  gmapping) produces an occupancy grid; `ekf.launch` fuses wheel odometry +
+  IMU + GPS (or RTK GPS via `ekf_rtk.launch`) into one pose estimate — this
+  fusion is what gets localization under the 10 cm target, since no single
+  sensor is accurate enough alone.
+- **Coverage planning — `mower_ai/scripts/cut_region_planner.py`:** a
+  boustrophedon ("back-and-forth") sweep over the occupancy map, skipping
+  occupied cells and AI no-cut zones via a point-in-polygon test, producing a
+  waypoint path. `mower_navigation/scripts/coverage_path_follower.py` (and a
+  `_v2` revision) executes it, arbitrated by `coverage_mission_manager.py`.
+- **Motion control — `mower_hardware_interface/scripts/jetson_mega_bridge.py`:**
+  a Jetson↔Arduino serial bridge that converts `/cmd_vel` into motor commands,
+  clamped to a max speed, with a **500 ms watchdog** — if commands stop
+  arriving, the mower halts instead of running away.
+  `mower_navigation/scripts/cmd_vel_arbiter.py` arbitrates between autonomous
+  and manual command sources before it reaches the bridge.
+- **Safety (defense in depth) — `mower_navigation/scripts/`:** the command
+  watchdog, `scan_safety_filter.py` (LiDAR + ultrasonic, with hysteresis to
+  avoid chattering between blocked/unblocked), `scan_self_filter.py`
+  (distinguishing real obstacles from the robot's own body/self-hits), and
+  `surface_blade_guard.py` (cutter gating — only enables the blade when the
+  mission state is valid, the mower is outside no-cut zones, *and* the camera
+  confirms grass-like pixels underneath).
+- **Simulation & validation — `mower_sim/`, `mower_bringup/launch/`:** each
+  subsystem was validated independently in Gazebo/RViz
+  (`sim_phase1_scan.launch`, `sim_phase2_cut.launch`) before being combined
+  into a full-stack autonomy trial (`sim_full_stack.launch`,
+  `full_autonomy.launch`), so failures could be isolated rather than debugged
+  all at once.
 
 ## Results
 
@@ -73,10 +86,3 @@ subsystem can be isolated and fixed without touching the rest.
   distinguish real obstacles from these.
 - **Cutter flicker** from a naive color check — fixed by fusing mission state
   with visual validation instead of trusting a single frame.
-
-## Full report
-
-The complete capstone report (system design, mechanical/electrical details,
-full validation results) isn't included here to keep this repo focused and
-free of non-public project material — this repo is the standalone, runnable
-extract of the perception module.

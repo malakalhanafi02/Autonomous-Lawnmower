@@ -1,0 +1,17 @@
+<launch>
+  <!-- Fake GPS from odom -->
+  <node pkg="mower_sensors" type="fake_gps_from_odom.py" name="fake_gps_from_odom" output="screen">
+    <!-- use /odom if you created the odom relay; otherwise use /diff_drive_controller/odom -->
+    <param name="odom_topic" value="/odom"/>
+    <param name="fix_topic" value="/fix"/>
+
+    <!-- Pick any origin; these defaults are around London, Ontario -->
+    <param name="origin_lat" value="43.0096"/>
+    <param name="origin_lon" value="-81.2737"/>
+    <param name="origin_alt" value="250.0"/>
+
+    <!-- Position covariance (m^2). 0.25 => 0.5m 1-sigma -->
+    <param name="position_covariance" value="0.25"/>
+    <param name="frame_id" value="gps_link"/>
+  </node>
+</launch>

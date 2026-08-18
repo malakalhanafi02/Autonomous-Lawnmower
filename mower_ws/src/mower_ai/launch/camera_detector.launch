@@ -1,0 +1,12 @@
+<launch>
+  <arg name="model_path"  default="best.pt"/>
+  <arg name="config_file" default="$(find mower_ai)/config/camera_detector.yaml"/>
+
+  <node pkg="mower_ai"
+        type="camera_detector.py"
+        name="camera_detector"
+        output="screen">
+    <rosparam file="$(arg config_file)" command="load"/>
+    <param name="model_path" value="$(arg model_path)"/>
+  </node>
+</launch>

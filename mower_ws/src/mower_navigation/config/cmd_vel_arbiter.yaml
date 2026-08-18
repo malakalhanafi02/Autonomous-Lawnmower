@@ -1,0 +1,9 @@
+manual_topic: /cmd_vel_manual
+nav_topic: /cmd_vel_nav
+output_topic: /cmd_vel_raw
+mode_topic: /mower/mode
+obstacle_alert_topic: /camera/obstacle_alert
+stop_on_obstacle_alert: true
+default_mode: manual
+cmd_timeout: 0.5
+loop_hz: 30.0

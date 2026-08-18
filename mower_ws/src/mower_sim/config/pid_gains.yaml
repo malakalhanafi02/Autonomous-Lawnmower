@@ -1,0 +1,7 @@
+gazebo_ros_control:
+  pid_gains:
+    # Drive is handled by gazebo_ros_skid_steer_drive in sim.
+    # Keep small wheel PID entries to avoid startup errors from gazebo_ros_control.
+    rear_left_wheel_joint:   {p: 1.0, i: 0.0, d: 0.01}
+    rear_right_wheel_joint:  {p: 1.0, i: 0.0, d: 0.01}
+    cutter_joint:            {p: 0.5, i: 0.0, d: 0.005}

@@ -20,6 +20,3 @@ env/
 runs/
 *.log
 gradio_cached_examples/
-
-# Note: model weights (models/*.pt) ARE committed here — they're small (~6 MB).
-# If you add larger weights later, ignore them and use a GitHub Release or Git LFS.

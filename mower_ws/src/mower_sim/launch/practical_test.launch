@@ -1,0 +1,17 @@
+<launch>
+  <arg name="gui" default="true"/>
+  <arg name="run_smoketest" default="false"/>
+
+  <include file="$(find mower_sim)/launch/sim.launch">
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="use_pid_gains" value="true"/>
+    <arg name="spawn_z" value="0.26"/>
+    <arg name="enable_ekf" value="false"/>
+  </include>
+
+  <node if="$(arg run_smoketest)"
+        pkg="mower_sim"
+        type="drive_smoketest.py"
+        name="drive_smoketest"
+        output="screen"/>
+</launch>

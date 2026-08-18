@@ -1,0 +1,6 @@
+fix_topic: /fix
+odom_topic: /odometry/gps
+odom_frame: odom
+base_frame: base_footprint
+use_initial_datum: true
+require_valid_status: false

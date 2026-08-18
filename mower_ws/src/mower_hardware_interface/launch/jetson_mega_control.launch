@@ -1,0 +1,14 @@
+<launch>
+  <arg name="port" default="/dev/ttyACM0"/>
+  <arg name="baud" default="115200"/>
+  <arg name="config_file" default="$(find mower_hardware_interface)/config/jetson_mega_control.yaml"/>
+
+  <node pkg="mower_hardware_interface"
+        type="jetson_mega_bridge.py"
+        name="jetson_mega_bridge"
+        output="screen">
+    <rosparam command="load" file="$(arg config_file)"/>
+    <param name="port" value="$(arg port)"/>
+    <param name="baud" value="$(arg baud)"/>
+  </node>
+</launch>

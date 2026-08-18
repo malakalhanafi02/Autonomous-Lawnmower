@@ -1,0 +1,14 @@
+<launch>
+  <arg name="port"        default="/dev/ttyS0"/>
+  <arg name="baud"        default="115200"/>
+  <arg name="config_file" default="$(find mower_sensors)/config/rtk_gps.yaml"/>
+
+  <node pkg="mower_sensors"
+        type="rtk_gps_driver.py"
+        name="rtk_gps_driver"
+        output="screen">
+    <rosparam file="$(arg config_file)" command="load"/>
+    <param name="port" value="$(arg port)"/>
+    <param name="baud" value="$(arg baud)"/>
+  </node>
+</launch>
