@@ -16,16 +16,16 @@ def test_draw_boxes_returns_same_shape():
     assert not np.array_equal(annotated, image)  # something was drawn
 
 
-def test_overlay_masks_draws_outline():
+def test_overlay_masks_draws_box():
     image = _blank_image()
     mask = np.zeros((100, 100), dtype=bool)
     mask[20:80, 20:80] = True
     result = PredictionResult(masks=[SegmentationMask("grass", 0.8, mask)])
     annotated = overlay_masks(image, result)
     assert annotated.shape == image.shape
-    assert annotated[20, 50].sum() > 0  # mask border got outlined
-    assert annotated[50, 50].sum() == 0  # mask interior untouched (outline only)
-    assert annotated[5, 5].sum() == 0  # outside mask untouched
+    assert annotated[20, 50].sum() > 0  # box border drawn along top edge
+    assert annotated[50, 50].sum() == 0  # box interior untouched (border only)
+    assert annotated[95, 95].sum() == 0  # far corner outside box/label untouched
 
 
 def test_visualize_combines_boxes_and_masks():

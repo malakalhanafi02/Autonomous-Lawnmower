@@ -21,20 +21,45 @@ def draw_boxes(image: np.ndarray, result: PredictionResult) -> np.ndarray:
     return annotated
 
 
-def overlay_masks(image: np.ndarray, result: PredictionResult, thickness: int = 3) -> np.ndarray:
-    """Draw a clean colored outline around each segmented region (no solid fill)."""
+def overlay_masks(image: np.ndarray, result: PredictionResult) -> np.ndarray:
+    """Draw a colored bounding box + label around each segmented region.
+
+    Labels are stacked to avoid overlapping when two boxes share a corner
+    (common for adjacent classes like lawn/boundary).
+    """
     annotated = image.copy()
     h, w = annotated.shape[:2]
+    label_rects: list[tuple[int, int, int, int]] = []
     for seg in result.masks:
         color = CLASS_COLORS.get(seg.class_name, DEFAULT_MASK_COLOR)
         mask = cv2.resize(seg.mask.astype("uint8"), (w, h), interpolation=cv2.INTER_NEAREST)
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        cv2.drawContours(annotated, contours, -1, color, thickness, lineType=cv2.LINE_AA)
+        if not contours:
+            continue
+        x, y, bw, bh = cv2.boundingRect(np.concatenate(contours))
+        cv2.rectangle(annotated, (x, y), (x + bw, y + bh), color, 2)
+
+        label = f"{seg.class_name} {seg.confidence:.2f}"
+        (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+        lw, lh = tw + 4, th + 6
+        ly = y - lh
+        while any(
+            ly < ry + rh and ly + lh > ry and x < rx + rw and x + lw > rx
+            for rx, ry, rw, rh in label_rects
+        ):
+            ly += lh
+        ly = max(ly, 0)
+        cv2.rectangle(annotated, (x, ly), (x + lw, ly + lh), color, -1)
+        cv2.putText(
+            annotated, label, (x + 2, ly + lh - 5),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA,
+        )
+        label_rects.append((x, ly, lw, lh))
     return annotated
 
 
 def visualize(image: np.ndarray, result: PredictionResult) -> np.ndarray:
-    """Draw segmentation mask outlines underneath and detection boxes on top."""
+    """Draw segmentation boxes underneath and detection boxes on top."""
     annotated = overlay_masks(image, result) if result.masks else image.copy()
     if result.boxes:
         annotated = draw_boxes(annotated, result)
@@ -44,7 +69,7 @@ def visualize(image: np.ndarray, result: PredictionResult) -> np.ndarray:
 def legend_markdown(include_detection: bool = False) -> str:
     """A short color legend for the segmentation overlay, for display above/below the demo image."""
     swatches = {"lawn": "🟩 green", "boundary": "🟥 red", "barriers": "🟦 blue"}
-    lines = [f"- **{name}** — {swatch} outline" for name, swatch in swatches.items()]
+    lines = [f"- **{name}** — {swatch} box" for name, swatch in swatches.items()]
     if include_detection:
         lines.append("- boxed labels (e.g. \"Tree 0.72\") — obstacle/object detections, with confidence score")
     return "\n".join(lines)

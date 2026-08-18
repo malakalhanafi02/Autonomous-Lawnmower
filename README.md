@@ -41,8 +41,6 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for how it all fits together.
 ## Demo
 
 > 🔗 **[Try it live](#)** — upload your own backyard photo, no install needed.
-> *(deploy on [Streamlit Community Cloud](https://share.streamlit.io): New app → this repo →
-> main file `streamlit_app.py` → then paste the URL here)*
 
 Upload a yard photo and see it segmented into cuttable lawn / boundary / barrier, with a
 confidence-threshold slider:
@@ -52,9 +50,7 @@ python app.py            # Gradio, local
 streamlit run streamlit_app.py   # Streamlit, same demo, deployable for free
 ```
 
-Try it with the sample yard photos in `examples/inputs/`, or upload your own. (The demo
-focuses on segmentation, which is the more reliable model on arbitrary photos — the
-`Detector` class also supports obstacle detection, see [Usage](#usage-as-a-library) below.)
+Try it with the sample yard photos in `examples/inputs/`, or upload your own.
 
 ## Simulation demo
 
@@ -63,7 +59,7 @@ in Gazebo/RViz.
 
 > 🎥 [Simulation walkthrough video](https://drive.google.com/file/d/1WV4yyKTy9lSwmz7GJ16YfoIyf3QvnkAL/view?usp=share_link)
 
-The coverage planner sweeping a mapped yard, excluding obstacle zones, in RViz:
+The coverage planner sweeping a mapped yard in RViz:
 
 ![Coverage planner in RViz](examples/coverage_planner_rviz.png)
 
@@ -83,7 +79,7 @@ results = det.predict("examples/yard.jpg")   # returns structured detections
 ```
 
 ## How it works
-YOLOv8 ("You Only Look Once") is a single-pass CNN that predicts all boxes/masks in one
+YOLOv8 is a single-pass CNN that predicts all boxes/masks in one
 forward pass, making it fast enough for real-time use on edge hardware (the capstone ran it
 on a Jetson Nano). Detections are used **conservatively** — treated as cautious
 "avoid / no-cut" hints rather than exact boundaries — because in a safety-critical system
@@ -103,6 +99,6 @@ docs/ARCHITECTURE.md    # how it all fits together
 ```
 
 ## Context & credits
-AI-perception component of a 5-person MSE 4499 Mechatronics capstone, which earned an
+AI-perception component of an MSE 4499 Mechatronics capstone, which earned an
 Honourable Mention at Western Engineering Design Day. Detection and segmentation models
 trained and tuned by me.

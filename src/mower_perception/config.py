@@ -8,7 +8,7 @@ SEGMENTATION_WEIGHTS = PACKAGE_ROOT / "models" / "segmentation_best.pt"
 
 DEFAULT_CONF = 0.4
 
-# BGR, cv2 convention — used to outline segmentation regions by class name so
+# BGR, cv2 convention — used to box segmentation regions by class name so
 # the same class always gets the same color across photos (not assigned by
 # detection order, which made "lawn" show up a different color each time).
 CLASS_COLORS = {

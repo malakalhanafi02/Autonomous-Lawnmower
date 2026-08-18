@@ -29,7 +29,7 @@ def run(image: Image.Image, conf: float):
 
 theme = gr.themes.Soft(primary_hue="green", secondary_hue="emerald", neutral_hue="slate")
 
-with gr.Blocks(title="Lawn Mower Perception", theme=theme) as demo:
+with gr.Blocks(title="Lawn Mower Perception") as demo:
     gr.Markdown(
         "# 🌱 Lawn Mower Perception\n"
         "YOLOv8 lawn segmentation from an autonomous mower capstone — classifies "
@@ -56,4 +56,4 @@ with gr.Blocks(title="Lawn Mower Perception", theme=theme) as demo:
     image_in.change(run, inputs=[image_in, conf_in], outputs=[image_out, table_out])
 
 if __name__ == "__main__":
-    demo.launch(share=False)
+    demo.launch(share=False, theme=theme)
