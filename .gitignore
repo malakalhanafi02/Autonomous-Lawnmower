@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Virtual environments
+.venv/
+.venv*/
+venv/
+env/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Runtime / outputs
+runs/
+*.log
+gradio_cached_examples/
+
+# Note: model weights (models/*.pt) ARE committed here — they're small (~6 MB).
+# If you add larger weights later, ignore them and use a GitHub Release or Git LFS.
