@@ -31,13 +31,17 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for how it all fits together.
 ![Sample prediction](examples/val_batch0_pred.jpg)
 
 ## Demo
-An interactive **Gradio** app — upload an image and see detections and lawn segmentation
-overlaid with confidence scores.
 
-<!-- Add a screenshot/GIF here after your first run: ![Demo](examples/demo.png) -->
+> 🔗 **[Try it live](#)** — upload your own backyard photo, no install needed.
+> *(deploy on [Streamlit Community Cloud](https://share.streamlit.io): New app → this repo →
+> main file `streamlit_app.py` → then paste the URL here)*
+
+Or run it locally — upload an image and see detections and lawn segmentation overlaid
+with confidence scores:
 
 ```bash
-python app.py
+python app.py            # Gradio, local
+streamlit run streamlit_app.py   # Streamlit, same demo, deployable for free
 ```
 
 Try it with the sample yard photos in `examples/inputs/`, or upload your own.
@@ -75,7 +79,8 @@ it's better to be slightly over-cautious than to trust an imperfect mask.
 ```
 src/mower_perception/   # detector.py, visualize.py, config.py (perception package)
 tests/                  # pytest unit tests
-app.py                  # Gradio demo
+app.py                  # Gradio demo (local)
+streamlit_app.py        # Streamlit demo (deployable, free hosting)
 models/                 # trained weights (detection_best.pt, segmentation_best.pt)
 examples/               # sample images + result figures
 training/               # training notebooks (Colab, reference)
