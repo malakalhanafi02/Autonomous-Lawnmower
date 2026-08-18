@@ -36,23 +36,29 @@ class Detector:
 
     def __init__(
         self,
-        detection_weights: Union[str, Path] = DETECTION_WEIGHTS,
-        segmentation_weights: Union[str, Path] = SEGMENTATION_WEIGHTS,
+        detection_weights: Union[str, Path, None] = DETECTION_WEIGHTS,
+        segmentation_weights: Union[str, Path, None] = SEGMENTATION_WEIGHTS,
         conf: float = DEFAULT_CONF,
     ) -> None:
+        """Pass detection_weights=None or segmentation_weights=None to skip loading
+        that model (saves startup time/memory when only one is needed)."""
         from ultralytics import YOLO
 
         self.conf = conf
-        self._detect_model = YOLO(str(detection_weights))
-        self._segment_model = YOLO(str(segmentation_weights))
+        self._detect_model = YOLO(str(detection_weights)) if detection_weights else None
+        self._segment_model = YOLO(str(segmentation_weights)) if segmentation_weights else None
 
     def predict(self, image, mode: str = "both", conf: Optional[float] = None) -> PredictionResult:
         """Run detection and/or segmentation on `image` (path, ndarray, or PIL.Image)."""
         conf = self.conf if conf is None else conf
         result = PredictionResult()
         if mode in ("detection", "both"):
+            if self._detect_model is None:
+                raise ValueError("Detection model not loaded — pass detection_weights=... to Detector")
             result.boxes = self._run_detection(image, conf)
         if mode in ("segmentation", "both"):
+            if self._segment_model is None:
+                raise ValueError("Segmentation model not loaded — pass segmentation_weights=... to Detector")
             result.masks = self._run_segmentation(image, conf)
         return result
 

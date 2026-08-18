@@ -30,21 +30,31 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for how it all fits together.
 
 ![Sample prediction](examples/val_batch0_pred.jpg)
 
+<details>
+<summary>Segmentation confusion matrix (validation set)</summary>
+
+![Confusion matrix](examples/confusion_matrix.png)
+
+`lawn` is correctly classified 1096/1160 times (94.5%); `boundary` 374/396 (94.4%).
+</details>
+
 ## Demo
 
 > 🔗 **[Try it live](#)** — upload your own backyard photo, no install needed.
 > *(deploy on [Streamlit Community Cloud](https://share.streamlit.io): New app → this repo →
 > main file `streamlit_app.py` → then paste the URL here)*
 
-Or run it locally — upload an image and see detections and lawn segmentation overlaid
-with confidence scores:
+Upload a yard photo and see it segmented into cuttable lawn / boundary / barrier, with a
+confidence-threshold slider:
 
 ```bash
 python app.py            # Gradio, local
 streamlit run streamlit_app.py   # Streamlit, same demo, deployable for free
 ```
 
-Try it with the sample yard photos in `examples/inputs/`, or upload your own.
+Try it with the sample yard photos in `examples/inputs/`, or upload your own. (The demo
+focuses on segmentation, which is the more reliable model on arbitrary photos — the
+`Detector` class also supports obstacle detection, see [Usage](#usage-as-a-library) below.)
 
 ## Simulation demo
 
@@ -52,6 +62,10 @@ The full capstone (perception + SLAM + planning + safety) was validated end-to-e
 in Gazebo/RViz.
 
 > 🎥 [Simulation walkthrough video](https://drive.google.com/file/d/1WV4yyKTy9lSwmz7GJ16YfoIyf3QvnkAL/view?usp=share_link)
+
+The coverage planner sweeping a mapped yard, excluding obstacle zones, in RViz:
+
+![Coverage planner in RViz](examples/coverage_planner_rviz.png)
 
 ## Installation
 ```bash

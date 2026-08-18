@@ -1,7 +1,7 @@
 """Streamlit demo for the lawn mower perception models.
 
-Upload a yard photo and see YOLOv8 obstacle detection and/or lawn
-segmentation overlaid on it, with a confidence-threshold slider.
+Upload a yard photo and see YOLOv8 lawn segmentation (cuttable lawn vs.
+boundary vs. barriers) overlaid on it, with a confidence-threshold slider.
 Deploy on Streamlit Community Cloud with main file: streamlit_app.py
 """
 from pathlib import Path
@@ -19,15 +19,16 @@ st.set_page_config(page_title="Lawn Mower Perception", page_icon="🌱", layout=
 
 @st.cache_resource
 def load_detector() -> Detector:
-    return Detector()
+    return Detector(detection_weights=None)  # segmentation only
 
 
 st.title("Lawn Mower Perception 🌱")
 st.markdown(
-    "YOLOv8 obstacle detection + lawn segmentation from an autonomous mower capstone. "
-    "Upload a yard photo, pick a mode, and adjust the confidence threshold. Trained on a "
-    "small custom-labeled dataset — a random backyard photo may need a lower confidence "
-    "threshold than a photo similar to the training set."
+    "YOLOv8 lawn segmentation from an autonomous mower capstone — classifies each "
+    "pixel as cuttable lawn, boundary, or barrier. Upload a yard photo and adjust "
+    "the confidence threshold. Trained on a small custom-labeled dataset — a random "
+    "backyard photo may need a lower confidence threshold than a photo similar to "
+    "the training set."
 )
 with st.expander("What am I looking at?"):
     st.markdown(legend_markdown())
@@ -38,15 +39,6 @@ with col_in:
     uploaded = st.file_uploader("Yard photo", type=["jpg", "jpeg", "png"])
     example_files = sorted(EXAMPLES_DIR.glob("*.jpg")) if EXAMPLES_DIR.exists() else []
     example_choice = st.selectbox("...or pick a sample photo", ["(none)"] + [p.name for p in example_files])
-    if example_choice != "(none)":
-        st.caption(
-            "These samples are close-up shots from the segmentation training set, "
-            "so lawn/boundary results are reliable — but the detection model "
-            "(Tree/Car/Person/etc.) was trained on a separate, wider-angle dataset, "
-            "so detection boxes on these particular samples can be less accurate. "
-            "Upload your own photo for a fairer test of detection."
-        )
-    mode = st.radio("Mode", ["Detection", "Segmentation", "Both"], index=2, horizontal=True)
     conf = st.slider("Confidence threshold", 0.0, 1.0, 0.4, 0.05)
 
 image = None
@@ -58,7 +50,7 @@ elif example_choice != "(none)":
 if image is not None:
     detector = load_detector()
     image_bgr = np.array(image)[:, :, ::-1]
-    result = detector.predict(image_bgr, mode=mode.lower(), conf=conf)
+    result = detector.predict(image_bgr, mode="segmentation", conf=conf)
     annotated_rgb = visualize(image_bgr, result)[:, :, ::-1]
 
     with col_in:

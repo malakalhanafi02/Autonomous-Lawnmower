@@ -41,11 +41,12 @@ def visualize(image: np.ndarray, result: PredictionResult, alpha: float = 0.45) 
     return annotated
 
 
-def legend_markdown() -> str:
+def legend_markdown(include_detection: bool = False) -> str:
     """A short color legend for the segmentation overlay, for display above/below the demo image."""
     swatches = {"lawn": "🟩 green", "boundary": "🟥 red", "barriers": "🟦 blue"}
     lines = [f"- **{name}** — {swatch} tint" for name, swatch in swatches.items()]
-    lines.append("- boxed labels (e.g. \"Tree 0.72\") — obstacle/object detections, with confidence score")
+    if include_detection:
+        lines.append("- boxed labels (e.g. \"Tree 0.72\") — obstacle/object detections, with confidence score")
     return "\n".join(lines)
 
 
