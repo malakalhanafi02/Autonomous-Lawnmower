@@ -21,21 +21,21 @@ def draw_boxes(image: np.ndarray, result: PredictionResult) -> np.ndarray:
     return annotated
 
 
-def overlay_masks(image: np.ndarray, result: PredictionResult, alpha: float = 0.45) -> np.ndarray:
+def overlay_masks(image: np.ndarray, result: PredictionResult, thickness: int = 3) -> np.ndarray:
+    """Draw a clean colored outline around each segmented region (no solid fill)."""
     annotated = image.copy()
     h, w = annotated.shape[:2]
     for seg in result.masks:
         color = CLASS_COLORS.get(seg.class_name, DEFAULT_MASK_COLOR)
-        mask = cv2.resize(seg.mask.astype("uint8"), (w, h), interpolation=cv2.INTER_NEAREST).astype(bool)
-        tinted = annotated.copy()
-        tinted[mask] = color
-        annotated = cv2.addWeighted(tinted, alpha, annotated, 1 - alpha, 0)
+        mask = cv2.resize(seg.mask.astype("uint8"), (w, h), interpolation=cv2.INTER_NEAREST)
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        cv2.drawContours(annotated, contours, -1, color, thickness, lineType=cv2.LINE_AA)
     return annotated
 
 
-def visualize(image: np.ndarray, result: PredictionResult, alpha: float = 0.45) -> np.ndarray:
-    """Draw segmentation masks underneath and detection boxes on top."""
-    annotated = overlay_masks(image, result, alpha=alpha) if result.masks else image.copy()
+def visualize(image: np.ndarray, result: PredictionResult) -> np.ndarray:
+    """Draw segmentation mask outlines underneath and detection boxes on top."""
+    annotated = overlay_masks(image, result) if result.masks else image.copy()
     if result.boxes:
         annotated = draw_boxes(annotated, result)
     return annotated
@@ -44,7 +44,7 @@ def visualize(image: np.ndarray, result: PredictionResult, alpha: float = 0.45) 
 def legend_markdown(include_detection: bool = False) -> str:
     """A short color legend for the segmentation overlay, for display above/below the demo image."""
     swatches = {"lawn": "🟩 green", "boundary": "🟥 red", "barriers": "🟦 blue"}
-    lines = [f"- **{name}** — {swatch} tint" for name, swatch in swatches.items()]
+    lines = [f"- **{name}** — {swatch} outline" for name, swatch in swatches.items()]
     if include_detection:
         lines.append("- boxed labels (e.g. \"Tree 0.72\") — obstacle/object detections, with confidence score")
     return "\n".join(lines)

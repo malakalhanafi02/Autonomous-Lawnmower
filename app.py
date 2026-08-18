@@ -27,9 +27,11 @@ def run(image: Image.Image, conf: float):
     return annotated_rgb, format_detections_table(result)
 
 
-with gr.Blocks(title="Lawn Mower Perception") as demo:
+theme = gr.themes.Soft(primary_hue="green", secondary_hue="emerald", neutral_hue="slate")
+
+with gr.Blocks(title="Lawn Mower Perception", theme=theme) as demo:
     gr.Markdown(
-        "# Lawn Mower Perception 🌱\n"
+        "# 🌱 Lawn Mower Perception\n"
         "YOLOv8 lawn segmentation from an autonomous mower capstone — classifies "
         "each pixel as cuttable lawn, boundary, or barrier. Upload a yard photo "
         "and adjust the confidence threshold."
