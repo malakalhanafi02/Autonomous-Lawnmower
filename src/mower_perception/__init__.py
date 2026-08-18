@@ -3,7 +3,7 @@
 AI-perception module of the MSE 4499 autonomous lawn mower capstone.
 """
 from .detector import BoxDetection, Detector, PredictionResult, SegmentationMask
-from .visualize import draw_boxes, format_detections_table, overlay_masks, visualize
+from .visualize import draw_boxes, format_detections_table, legend_markdown, overlay_masks, visualize
 
 __version__ = "0.1.0"
 
@@ -14,6 +14,7 @@ __all__ = [
     "SegmentationMask",
     "draw_boxes",
     "format_detections_table",
+    "legend_markdown",
     "overlay_masks",
     "visualize",
 ]

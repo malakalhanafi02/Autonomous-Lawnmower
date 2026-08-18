@@ -10,7 +10,7 @@ import numpy as np
 import streamlit as st
 from PIL import Image
 
-from mower_perception import Detector, format_detections_table, visualize
+from mower_perception import Detector, format_detections_table, legend_markdown, visualize
 
 EXAMPLES_DIR = Path(__file__).parent / "examples" / "inputs"
 
@@ -25,8 +25,12 @@ def load_detector() -> Detector:
 st.title("Lawn Mower Perception 🌱")
 st.markdown(
     "YOLOv8 obstacle detection + lawn segmentation from an autonomous mower capstone. "
-    "Upload a yard photo, pick a mode, and adjust the confidence threshold."
+    "Upload a yard photo, pick a mode, and adjust the confidence threshold. Trained on a "
+    "small custom-labeled dataset — a random backyard photo may need a lower confidence "
+    "threshold than a photo similar to the training set."
 )
+with st.expander("What am I looking at?"):
+    st.markdown(legend_markdown())
 
 col_in, col_out = st.columns(2)
 
@@ -50,9 +54,9 @@ if image is not None:
     annotated_rgb = visualize(image_bgr, result)[:, :, ::-1]
 
     with col_in:
-        st.image(image, caption="Input", use_container_width=True)
+        st.image(image, caption="Input", width="stretch")
     with col_out:
-        st.image(annotated_rgb, caption="Annotated result", use_container_width=True)
+        st.image(annotated_rgb, caption="Annotated result", width="stretch")
         st.text(format_detections_table(result))
 else:
     st.info("Upload a photo or pick a sample to get started.")

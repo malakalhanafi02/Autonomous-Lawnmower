@@ -10,7 +10,7 @@ import gradio as gr
 import numpy as np
 from PIL import Image
 
-from mower_perception import Detector, format_detections_table, visualize
+from mower_perception import Detector, format_detections_table, legend_markdown, visualize
 
 EXAMPLES_DIR = Path(__file__).parent / "examples" / "inputs"
 
@@ -33,8 +33,12 @@ with gr.Blocks(title="Lawn Mower Perception") as demo:
         "# Lawn Mower Perception 🌱\n"
         "YOLOv8 obstacle detection + lawn segmentation from an autonomous "
         "mower capstone. Upload a yard photo, pick a mode, and adjust the "
-        "confidence threshold."
+        "confidence threshold. Trained on a small custom-labeled dataset — a "
+        "random backyard photo may need a lower confidence threshold than a "
+        "photo similar to the training set."
     )
+    with gr.Accordion("What am I looking at?", open=False):
+        gr.Markdown(legend_markdown())
     with gr.Row():
         with gr.Column():
             image_in = gr.Image(type="pil", label="Yard photo")
