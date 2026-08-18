@@ -22,9 +22,9 @@ def draw_boxes(image: np.ndarray, result: PredictionResult) -> np.ndarray:
 
 
 def overlay_masks(image: np.ndarray, result: PredictionResult) -> np.ndarray:
-    """Draw a colored bounding box + label around each segmented region.
+    """Draw a colored class/confidence label over each segmented region (no box border).
 
-    Labels are stacked to avoid overlapping when two boxes share a corner
+    Labels are stacked to avoid overlapping when two regions share a corner
     (common for adjacent classes like lawn/boundary).
     """
     annotated = image.copy()
@@ -37,7 +37,6 @@ def overlay_masks(image: np.ndarray, result: PredictionResult) -> np.ndarray:
         if not contours:
             continue
         x, y, bw, bh = cv2.boundingRect(np.concatenate(contours))
-        cv2.rectangle(annotated, (x, y), (x + bw, y + bh), color, 2)
 
         label = f"{seg.class_name} {seg.confidence:.2f}"
         (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
@@ -59,7 +58,7 @@ def overlay_masks(image: np.ndarray, result: PredictionResult) -> np.ndarray:
 
 
 def visualize(image: np.ndarray, result: PredictionResult) -> np.ndarray:
-    """Draw segmentation boxes underneath and detection boxes on top."""
+    """Draw segmentation labels underneath and detection boxes on top."""
     annotated = overlay_masks(image, result) if result.masks else image.copy()
     if result.boxes:
         annotated = draw_boxes(annotated, result)
@@ -69,7 +68,7 @@ def visualize(image: np.ndarray, result: PredictionResult) -> np.ndarray:
 def legend_markdown(include_detection: bool = False) -> str:
     """A short color legend for the segmentation overlay, for display above/below the demo image."""
     swatches = {"lawn": "🟩 green", "boundary": "🟥 red", "barriers": "🟦 blue"}
-    lines = [f"- **{name}** — {swatch} box" for name, swatch in swatches.items()]
+    lines = [f"- **{name}** — {swatch} label" for name, swatch in swatches.items()]
     if include_detection:
         lines.append("- boxed labels (e.g. \"Tree 0.72\") — obstacle/object detections, with confidence score")
     return "\n".join(lines)
